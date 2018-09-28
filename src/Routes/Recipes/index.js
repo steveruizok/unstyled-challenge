@@ -2,190 +2,177 @@ import React from "react";
 import styled from "react-emotion";
 import RecipeWodge from "./Components/recipe_wodge";
 
-const parseQueryString = location => {
-	if (!location.search) {
-		return;
-	}
-
-	var search = location.search.substring(1);
-	return JSON.parse(
-		'{"' + search.replace(/&/g, '","').replace(/=/g, '":"') + '"}',
-		function(key, value) {
-			return key === "" ? value : decodeURIComponent(value);
-		}
-	);
-};
-
 export default class Example extends React.Component {
-	queryInput = React.createRef();
-	ingredientsInput = React.createRef();
+  queryInput = React.createRef();
+  ingredientsInput = React.createRef();
 
-	state = {
-		searching: false,
-		allResults: [],
-		results: [],
-		page: 1
-	};
+  page = 1; // The current page
 
-	changePage = difference => {};
+  state = {
+    hasQuery: false,
+    searching: false,
+    results: []
+  };
 
-	searchForRecipes = () => {
-		const params = parseQueryString(this.props.location);
+  componentWillMount() {
+    this.fetchRecipesFromUrl();
+  }
 
-		if (!params) {
-			return;
-		}
+  fetchRecipesFromUrl = () => {
+    let params = new URL(document.location).searchParams;
 
-		console.log(params);
+    const ingredients = params.get("i");
+    const query = params.get("q");
+    const page = params.get("p");
 
-		this.setState(
-			{
-				searching: true
-			},
-			() => {
-				this.getRecipes(
-					this.ingredientsInput.current.value.split(","),
-					this.queryInput.current.value,
-					this.state.page
-				);
-			}
-		);
-	};
+    this.page = page ? parseInt(page, 10) : 1;
 
-	getRecipes = (ingredients, query, page) => {
-		let URI =
-			"https://cors-anywhere.herokuapp.com/http://www.recipepuppy.com/api/?";
+    this.getRecipes(ingredients, query, page);
+  };
 
-		const params = [];
+  handleSearchClick = () => {
+    this.page = 1;
+    this.setUrl();
+  };
 
-		if (ingredients) {
-			params.push("i=" + ingredients);
-		}
+  handlePageChange = difference => {
+    this.page += difference;
+    this.setUrl();
+  };
 
-		if (query) {
-			params.push("q=" + query);
-		}
+  setUrl = () => {
+    let queryString =
+      (this.ingredientsInput.current.value
+        ? `i=${this.ingredientsInput.current.value.split(",").join(",")}&`
+        : ``) +
+      (this.queryInput.current.value
+        ? `q=${this.queryInput.current.value}&`
+        : ``) +
+      `p=${this.page}`;
 
-		if (page) {
-			params.push("p=" + page);
-		}
+    this.props.history.push("?" + queryString);
 
-		URI += params.join("&");
+    this.setState(
+      {
+        hasQuery: true,
+        results: [],
+        searching: true
+      },
+      this.fetchRecipesFromUrl
+    );
+  };
 
-		fetch(URI)
-			.then(r => {
-				if (!r.ok) {
-					throw Error(r.statusText);
-				}
-				return r.json();
-			})
-			.then(this.setRecipes)
-			.catch(e => {
-				console.log("Uh oh, " + e.statusText);
-			});
-	};
+  getRecipes = (ingredients = "", query = "") => {
+    let url =
+      `https://cors-anywhere.herokuapp.com/http://www.recipepuppy.com/api/?` +
+      (ingredients ? `i=${ingredients}&` : ``) +
+      (query ? `q=${query}&` : ``) +
+      `&p=${this.page}`;
 
-	setRecipes = json => {
-		console.log(json);
-		this.setState({
-			searching: false,
-			results: json.results
-		});
-	};
+    fetch(url)
+      .then(r => {
+        if (!r.ok) {
+          throw Error(r.statusText);
+        }
+        return r.json();
+      })
+      .then(this.setRecipes)
+      .catch(e => {
+        console.log("Uh oh, " + e.statusText);
+      });
+  };
 
-	componentWillMount() {
-		let params = new URL(document.location).searchParams;
+  setRecipes = json => {
+    this.setState({
+      hasQuery: true,
+      searching: false,
+      results: json.results
+    });
+  };
 
-		const ingredients = params.get("i");
-		const query = params.get("q");
-		const page = params.get("p");
-
-		if (ingredients || query || page) {
-			console.log(ingredients, query, page);
-			this.getRecipes(ingredients, query, page);
-		}
-	}
-
-	componentWillUpdate() {}
-
-	render() {
-		return (
-			<div>
-				<h1>Recipe Finder</h1>
-				<InputForm>
-					<InputLabel>Search:</InputLabel>
-					<InputField>
-						<input
-							name="queryInput"
-							type="text"
-							ref={this.queryInput}
-							placeholder="Club sandwich..."
-							style={{ width: "100%", maxWidth: "30em" }}
-						/>
-					</InputField>
-					<InputLabel>Ingredients:</InputLabel>
-					<InputField>
-						<input
-							name="ingredientsInpuit"
-							type="text"
-							ref={this.ingredientsInput}
-							placeholder="Flour, eggs..."
-							style={{ width: "100%", maxWidth: "30em" }}
-						/>
-					</InputField>
-					<button
-						onClick={() => {
-							this.setState(
-								{
-									page: 1
-								},
-								this.searchForRecipes
-							);
-						}}
-						disabled={this.state.searching}
-					>
-						{this.state.searching ? "Searching..." : "Search"}
-					</button>
-				</InputForm>
-				<hr />
-
-				<div hidden={this.state.results.length <= 0}>
-					<label>{this.state.results.length} Results:</label>
-					<div
-						style={{
-							opacity: this.state.searching ? 0.5 : 1
-						}}
-					>
-						{this.state.results.map(r => (
-							<RecipeWodge key={r.title} {...r} />
-						))}
-					</div>
-					<hr />
-					<PaginationContainer>
-						<button onClick={() => this.changePage(1)}>Prev Page</button>
-						<p>Page {this.state.page}</p>
-						<button onClick={() => this.changePage(1)}>Next Page</button>
-					</PaginationContainer>
-				</div>
-			</div>
-		);
-	}
+  render() {
+    return (
+      <div>
+        <h1>Recipe Finder</h1>
+        <InputForm>
+          <InputLabel>Search:</InputLabel>
+          <InputField>
+            <input
+              name="queryInput"
+              type="text"
+              ref={this.queryInput}
+              placeholder="Club sandwich..."
+              style={{ width: "100%", maxWidth: "30em" }}
+            />
+          </InputField>
+          <InputLabel>Ingredients:</InputLabel>
+          <InputField>
+            <input
+              name="ingredientsInpuit"
+              type="text"
+              ref={this.ingredientsInput}
+              placeholder="Flour, eggs..."
+              style={{ width: "100%", maxWidth: "30em" }}
+            />
+          </InputField>
+          <button
+            onClick={this.handleSearchClick}
+            disabled={this.state.searching}
+          >
+            {this.state.searching ? "Searching..." : "Search"}
+          </button>
+        </InputForm>
+        <hr />
+        <div hidden={this.state.hasQuery}>
+          <p>To find recipes, enter a search in the controls above.</p>
+        </div>
+        <div hidden={!this.state.searching}>
+          <p>Searching...</p>
+        </div>
+        {this.state.hasQuery &&
+          this.state.results.length === 0 &&
+          !this.state.searching && (
+            <div>
+              <p>No results.</p>
+            </div>
+          )}
+        <div hidden={this.state.results.length <= 0}>
+          <label>{this.state.results.length} Results:</label>
+          <div
+            style={{
+              opacity: this.state.searching ? 0.5 : 1
+            }}
+          >
+            {this.state.results.map((r, i) => (
+              <RecipeWodge key={r.title + "_" + i} {...r} />
+            ))}
+          </div>
+          <hr />
+          <PaginationContainer>
+            <button onClick={() => this.handlePageChange(-1)}>Prev Page</button>
+            <p>Page {this.page}</p>
+            <button onClick={() => this.handlePageChange(1)}>Next Page</button>
+          </PaginationContainer>
+        </div>
+      </div>
+    );
+  }
 }
 
 const InputForm = styled("div")`
-	margin-bottom: 1em;
+  margin-bottom: 1em;
 `;
 
 const InputLabel = styled("label")`
-	margin-bottom: 1em;
+  margin-bottom: 1em;
 `;
 
 const InputField = styled("div")`
-	margin: 0.5em 0 1em 0;
+  margin: 0.5em 0 1em 0;
 `;
 
 const PaginationContainer = styled("div")`
-	display: flex;
-	width: 100%;
-	justify-content: space-between;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
 `;
