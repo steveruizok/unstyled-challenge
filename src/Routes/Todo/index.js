@@ -6,6 +6,7 @@ const days = n => new Date().getTime() + n * 1000 * 60 * 60 * 24;
 
 class TodoList extends React.Component {
   inputField = React.createRef();
+  dateTimeField = React.createRef();
 
   state = {
     canSubmit: false,
@@ -50,7 +51,8 @@ class TodoList extends React.Component {
 
     const todo = {
       title: this.inputField.current.value,
-      completed: false
+      completed: false,
+      date: new Date(this.dateTimeField.current.value)
     };
 
     this.setState({
@@ -117,7 +119,6 @@ class TodoList extends React.Component {
 
   render() {
     const now = new Date();
-    console.log(now.toISOString().slice(0, -2));
     //2017-06-13T13:00
     //2018-09-24T07:52:14.612Z
     return (
@@ -147,6 +148,7 @@ class TodoList extends React.Component {
           />
           <input
             type="datetime-local"
+            ref={this.dateTimeField}
             onChange={ev => console.log(ev)}
             value={now.toISOString().slice(0, -8)}
           />
