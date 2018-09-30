@@ -25,6 +25,10 @@ select {
   font-size: 1em;
 }
 
+input[type="range"] {
+  padding: 0;
+}
+
 hr {
   margin: 2em 0;
 }

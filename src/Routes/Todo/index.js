@@ -4,7 +4,7 @@ import { TodoItem } from "./Components";
 
 const days = n => new Date().getTime() + n * 1000 * 60 * 60 * 24;
 
-class TodoList extends React.Component {
+export default class Component extends React.Component {
   inputField = React.createRef();
   dateTimeField = React.createRef();
 
@@ -162,8 +162,6 @@ class TodoList extends React.Component {
     );
   }
 }
-
-export default TodoList;
 
 const ListItem = styled("li")`
   margin: 1em 0em;

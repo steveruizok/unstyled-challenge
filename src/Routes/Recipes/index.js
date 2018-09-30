@@ -2,7 +2,7 @@ import React from "react";
 import styled from "react-emotion";
 import RecipeWodge from "./Components/recipe_wodge";
 
-export default class Example extends React.Component {
+export default class Component extends React.Component {
   queryInput = React.createRef();
   ingredientsInput = React.createRef();
 
