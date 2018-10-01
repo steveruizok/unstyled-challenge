@@ -54,7 +54,7 @@ const easeIn = t => {
 function getNoiseTone(value = 50) {
   value = easeIn(value / 100) * 100;
 
-  let cw, ch, dt, dd, dl, c, r;
+  let cw, ch, dt, dd, dl, c;
   const cv = document.createElement("canvas");
   const cx = cv.getContext("2d");
 

@@ -1,5 +1,5 @@
 import React from "react";
-import styled, { cx, css } from "react-emotion";
+import styled, { css } from "react-emotion";
 
 export default class Component extends React.Component {
   textContent = React.createRef();
@@ -28,8 +28,6 @@ export default class Component extends React.Component {
   componentDidUpdate() {}
 
   setOverflowing = () => {
-    console.log(this.textContent.current.scrollHeight, this.maxHeight);
-
     this.setState({
       overflowing: this.textContent.current.scrollHeight > this.maxHeight
     });
@@ -63,7 +61,7 @@ export default class Component extends React.Component {
                 alt="See more"
                 onClick={this.handleSeeMoreOrLessClick}
               >
-                <a href="#" onClick={preventDefault}>
+                <a href="seemore" onClick={preventDefault}>
                   See More
                 </a>
               </SeeMoreContainer>
@@ -76,7 +74,7 @@ export default class Component extends React.Component {
                 onClick={this.handleSeeMoreOrLessClick}
               >
                 <br />
-                <a href="#" onClick={preventDefault}>
+                <a href="seeless" onClick={preventDefault}>
                   See Less
                 </a>
               </SeeLessContainer>
