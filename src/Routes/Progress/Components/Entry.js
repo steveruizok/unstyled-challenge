@@ -1,18 +1,20 @@
 import React from "react";
 import styled, { css } from "react-emotion";
 import EntryComment from "./EntryComment";
+import ProgressBar from "./ProgressBar";
 
 export default class Component extends React.Component {
   static defaultProps = {
     date: new Date().toISOString(),
     value: 50,
+    deltaValue: 70,
     comment: "Comment..."
   };
 
   componentWillMount() {}
 
   render() {
-    let { date, value, comment } = this.props;
+    let { date, value, deltaValue, comment } = this.props;
 
     let d = new Date(date);
 
@@ -31,7 +33,13 @@ export default class Component extends React.Component {
             hour12: true
           })}
         </EntryDate>
-        <EntryValueDisplay value={value} />
+        <div
+          className={css`
+            height: 2em;
+          `}
+        >
+          <ProgressBar value={value} deltaValue={deltaValue} />
+        </div>
         {comment && <EntryComment>{comment}</EntryComment>}
       </EntryContainer>
     );
@@ -49,24 +57,3 @@ const EntryDate = styled("div")`
   grid-column: 1;
   text-align: right;
 `;
-
-const EntryValueDisplay = ({ value }) => {
-  return (
-    <div
-      className={css`
-        height: 2em;
-        grid-column: 2;
-        border: var(--border);
-      `}
-    >
-      <div
-        className={css`
-          height: 100%;
-          width: ${value}%;
-          border-right: var(--border);
-          background: var(--tone-light);
-        `}
-      />
-    </div>
-  );
-};
